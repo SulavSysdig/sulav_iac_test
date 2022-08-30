@@ -4,7 +4,7 @@ description: Creates a secret with a kubeconfig for a user with signed certifica
 type: application
 version: 0.1.2
 home: https://github.com/sysdiglabs/demoenv-scenarios
-appVersion: 1.0.5
+appVersion: 1.0.6
 icon: https://sysdig.com/wp-content/uploads/2019/10/sysdig-logo.svg
 maintainers:
   - name: Sysdig
