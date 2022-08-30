@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-greenversion
+  labels:
+    app: istio-flasknginx
+    tier: flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-flasknginx
+      tier: flask
+      version: green
+  template:
+    metadata:
+      labels:
+        app: istio-flasknginx
+        tier: flask
+        version: green
+    spec:
+      containers:
+      - name: flask-backend
+        image: {{ include "istio-flasknginx.flaskbackend.image" . }}
+        ports:
+        - containerPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-blueversion
+  labels:
+    app: istio-flasknginx
+    tier: flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-flasknginx
+      version: blue
+      tier: flask
+  template:
+    metadata:
+      labels:
+        app: istio-flasknginx
+        version: blue
+        tier: flask
+    spec:
+      containers:
+      - name: flask-backend
+        image: {{ include "istio-flasknginx.flaskbackend.image" . }}
+        ports:
+        - containerPort: 5000

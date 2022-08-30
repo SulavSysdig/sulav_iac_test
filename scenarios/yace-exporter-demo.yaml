@@ -1,0 +1,495 @@
+releases:
+
+  # Deploy yace-exporter
+  - name: yace-exporter-fargate
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs: 
+          - regions:
+            - us-east-1
+            type: ecs-containerinsights
+            metrics:
+              - name: ContainerInstanceCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: ServiceCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+          - regions:
+            - us-east-1
+            type: ecs-containerinsights
+            awsDimensions:
+              - ServiceName
+            metrics:
+              - name: CpuReserved
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: CpuUtilized
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: MemoryReserved
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: MemoryUtilized
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: StorageReadBytes
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: StorageWriteBytes
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: NetworkRxBytes
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: NetworkTxBytes
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: DesiredTaskCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: TaskCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: PendingTaskCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: RunningTaskCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: DeploymentCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+              - name: TaskSetCount
+                statistics:
+                - Average
+                period: 300
+                length: 600
+
+  - name: yace-exporter-lambda
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs:
+          - regions:
+            - us-east-1
+            type: lambda
+            metrics:
+              - name: Duration
+                statistics:
+                - Sum
+                - Maximum
+                - Minimum
+                - Average
+                period: 300
+                length: 600
+              - name: Invocations
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: Errors
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: Throttles
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: DeadLetterErrors
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: DestinationDeliveryFailures
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: ProvisionedConcurrencyInvocations
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: ProvisionedConcurrencySpilloverInvocations
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: IteratorAge
+                statistics:
+                - Average
+                - Maximum
+                period: 300
+                length: 600
+              - name: ConcurrentExecutions
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: ProvisionedConcurrentExecutions
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+              - name: ProvisionedConcurrencyUtilization
+                statistics:
+                - Maximum
+                period: 300
+                length: 600
+              - name: UnreservedConcurrentExecutions
+                statistics:
+                - Sum
+                period: 300
+                length: 600
+
+  - name: yace-exporter-rds
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs:
+          - regions: 
+            - us-east-1
+            type: rds
+            enableMetricData: true
+            metrics: 
+              - name: BinLogDiskUsage
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: BurstBalance
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: CPUUtilization
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: CPUCreditUsage
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: CPUCreditBalance
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: DatabaseConnections
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: DiskQueueDepth
+                statistics:
+                - Average
+                - Maximum
+                period: 300
+                length: 3600
+              - name: FailedSQLServerAgentJobsCount
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: FreeableMemory
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: FreeStorageSpace
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: MaximumUsedTransactionIDs
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: NetworkReceiveThroughput
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: NetworkTransmitThroughput
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: OldestReplicationSlotLag
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: ReadIOPS
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: ReadLatency
+                statistics:
+                - Maximum
+                - Average
+                period: 300
+                length: 3600
+              - name: ReadThroughput
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: ReplicaLag
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: ReplicationSlotDiskUsage
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: SwapUsage
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: TransactionLogsDiskUsage
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: TransactionLogsGeneration
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: WriteIOPS
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+              - name: WriteLatency
+                statistics:
+                - Maximum
+                - Average
+                period: 300
+                length: 3600
+              - name: WriteThroughput
+                statistics:
+                - Average
+                period: 300
+                length: 3600
+  - name: yace-exporter-elb
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs:
+          - regions: 
+            - us-east-1
+            type: elb
+            metrics:
+              - name: BackendConnectionErrors
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HealthyHostCount
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_Backend_2XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_Backend_3XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_Backend_4XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_Backend_5XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_ELB_4XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: HTTPCode_ELB_5XX
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+              - name: Latency
+                statistics:
+                - Average
+                - p95
+                period: 300
+                length: 3600
+              - name: RequestCount
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+              - name: SpilloverCount
+                statistics:
+                - Sum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: SurgeQueueLength
+                statistics:
+                - Maximum
+                period: 300
+                length: 3600
+                nilToZero: true
+              - name: UnHealthyHostCount
+                statistics:
+                - Minimum
+                period: 300
+                length: 3600
+                nilToZero: true
+
+  - name: yace-exporter-s3-daily
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs:
+          - regions:
+            - us-east-1
+            type: s3
+            metrics:
+              - name: NumberOfObjects
+                statistics:
+                  - Average
+                period: 86400
+                length: 172800
+                additionalDimensions:
+                  - name: StorageType
+                    value: AllStorageTypes
+              - name: BucketSizeBytes
+                statistics:
+                  - Average
+                period: 86400
+                length: 172800
+                additionalDimensions:
+                  - name: StorageType
+                    value: StandardStorage
+    
+  - name: yace-exporter-s3-minute
+    namespace: yace
+    chart: ../charts/yace-exporter
+    values:
+      #generate credentials with 
+      #AWS_CREDENTIALS=$(cat ~/.aws/credentials | base64)
+      - awsCredentials: {{ requiredEnv "AWS_CREDENTIALS" |quote | indent 8}}
+      - discovery:
+          jobs:
+          - regions:
+            - us-east-1
+            type: s3
+            awsDimensions:
+              - FilterId
+            metrics:
+              - name: BytesDownloaded
+                statistics:
+                  - Sum
+                  - Average
+                period: 300
+                length: 3600
+              - name: BytesUploaded
+                statistics:
+                  - Sum
+                  - Average
+                period: 300
+                length: 3600
+              - name: 4xxErrors
+                statistics:
+                  - Average
+                period: 300
+                length: 3600
+              - name: 5xxErrors
+                statistics:
+                  - Average
+                period: 300
+                length: 3600
+              - name: FirstByteLatency
+                statistics:
+                  - p95
+                period: 300
+                length: 3600
+              - name: TotalRequestLatency
+                statistics:
+                  - p95
+                period: 300
+                length: 3600

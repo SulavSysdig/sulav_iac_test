@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgresql
+    chart: postgresql-3.1.3
+    heritage: Tiller
+    release: pg-database
+  name: pg-database-postgresql
+spec:
+  ports:
+  - name: postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: postgresql
+  selector:
+    app: postgresql
+    release: pg-database
+    role: master
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgresql
+    chart: postgresql-3.1.3
+    heritage: Tiller
+    release: pg-database
+  name: pg-database-postgresql-headless
+spec:
+  clusterIP: None
+  ports:
+  - name: postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: postgresql
+  selector:
+    app: postgresql
+    release: pg-database
+  sessionAffinity: None
+  type: ClusterIP

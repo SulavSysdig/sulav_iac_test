@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sock-shop.fullname" . }}-user
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.user.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sock-shop.user.labels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        {{- include "sock-shop.common.labels" . | nindent 8 }}
+        {{- include "sock-shop.user.labels" . | nindent 8 }}
+{{ if .Values.user.prometheus.active }}
+      annotations:
+        {{- include "sock-shop.user.annotations" . | nindent 8 }}
+{{ end }}
+    spec:
+      serviceAccountName: {{ template "sock-shop.serviceAccountName" .}}
+      containers:
+      - name: user
+        image: {{ include "sock-shop.user.image" . }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: MONGO_HOST
+          value: user-db:27017
+        resources:
+{{ toYaml .Values.user.resources | indent 10 }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          capabilities:
+            drop:
+              - all
+            add:
+              - NET_BIND_SERVICE
+          readOnlyRootFilesystem: true
+      nodeSelector:
+        beta.kubernetes.io/os: linux

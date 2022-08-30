@@ -1,0 +1,15 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+# We don't use the fullname or it will break the hack.sh script
+#  name: {{ include "ping.fullname" . }}-php
+  name: php
+spec:
+  selector:
+        {{- include "ping.php.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: php
+    protocol: TCP
+    port: 80
+    targetPort: {{ .Values.php.apache_port }}

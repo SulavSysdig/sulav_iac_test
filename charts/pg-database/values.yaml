@@ -1,0 +1,9 @@
+postgres:
+  image:
+    repository: bitnami/postgresql
+    tag: 10.6.0
+
+minideb:
+  image:
+    repository: bitnami/minideb
+    tag: stretch

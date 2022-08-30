@@ -1,0 +1,12 @@
+mysql:
+  image:
+    repository: sysdiglabs/workshop-forensics-1-mysql
+    tag: 0.1
+  runAsUser: 99
+
+php:
+  image:
+    repository: sysdiglabs/workshop-forensics-1-phpping
+    tag: 0.1
+  apache_port: 8080
+  runAsUser: 33

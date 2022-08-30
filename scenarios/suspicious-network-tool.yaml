@@ -1,0 +1,31 @@
+releases:
+  - name: store-frontend
+    namespace: suspicious-network-tool
+    chart: ../charts/store-frontend
+    atomic: true
+    values:
+    - php:
+        apache_port: 8080
+
+  - name: suspicious-network-tool-trigger
+    namespace: suspicious-network-tool
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - image:
+          repository: sysdiglabs/kubectl-expect
+          tag: latest
+        schedule: "14 12 * * *"
+        interpreter: /usr/bin/expect
+        script: |
+          #!/usr/bin/expect -f
+
+          set timeout 240
+          set prompt "$"
+
+          spawn sh -c "kubectl exec -it `kubectl get pods -n suspicious-network-tool --field-selector=status.phase=Running -l app.kubernetes.io/name=ping-php -o name | head -n 1` -n suspicious-network-tool -- sh"
+          expect -re $prompt
+          send "ab -n 10000 -c 1 http://php/\r"
+          expect -re $prompt
+          send "exit\r"
+          expect eof

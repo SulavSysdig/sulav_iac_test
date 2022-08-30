@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "yace-exporter.fullname" . }}
+  labels:
+    {{- include "yace-exporter.common.labels" . | nindent 4 }}
+    {{- include "yace-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "yace-exporter.labels" . | nindent 6}}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "yace-exporter.labels" . | nindent 8 }}
+{{ if .Values.prometheus.active }}      annotations:
+        {{- include "yace-exporter.annotations" . | nindent 8 }} {{ end }}
+    spec:
+      containers:
+      - name: yace
+        image: {{ include "yace-exporter.image" . }}
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+          - name: {{ include "yace-exporter.fullname" . }}-config
+            mountPath: /tmp/config.yml
+            subPath: config.yml
+          - name: {{ include "yace-exporter.fullname" . }}-credentials
+            mountPath: /exporter/.aws/credentials
+            subPath: credentials
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: {{ include "yace-exporter.fullname" . }}-config
+          name: {{ include "yace-exporter.fullname" . }}-config
+        - secret:
+            defaultMode: 420
+            secretName: {{ include "yace-exporter.fullname" . }}-credentials
+          name: {{ include "yace-exporter.fullname" . }}-credentials

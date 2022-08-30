@@ -1,0 +1,18 @@
+releases:
+  - name: fargate-events-trigger
+    namespace: fargate-events
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "20 12 * * *"
+      - image:
+          repository: sysdiglabs/kubectl-expect
+          tag: latest
+        interpreter: /bin/sh
+        #See available commands in https://github.com/draios/automation/blob/staging/docker-images/secure-event-generator/secure_event_generator.py
+        script: |
+          #!/bin/sh
+          wget -q -O - --post-data="" http://fargate.aws.sysdig-demo.zone:5000/event\?type\=WRITE_BELOW_BINARY_DIR
+          wget -q -O - --post-data="" http://fargate.aws.sysdig-demo.zone:5000/event\?type\=WRITE_BELOW_ETC
+          wget -q -O - --post-data="" http://fargate.aws.sysdig-demo.zone:5000/event\?type\=PACKAGE_MANAGEMENT_CHANGES
+          wget -q -O - --post-data="" http://fargate.aws.sysdig-demo.zone:5000/event\?type\=SEARCH_PRIVATE_KEYS

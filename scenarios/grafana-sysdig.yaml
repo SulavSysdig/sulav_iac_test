@@ -1,0 +1,27 @@
+repositories:
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+releases:
+
+  - name: grafana-sysdig
+    namespace: grafana-sysdig
+    chart: grafana/grafana
+    atomic: true
+    values:
+    - persistence:
+        enabled: true
+        type: statefulset
+      ingress:
+        enabled: true
+        hosts:
+        - grafana.sysdig-demo.zone
+      extraInitContainers:
+        - name: download-sysdig-plugin
+          image: busybox:1.31.1
+          securityContext:
+            runAsUser: 0
+          command: ["sh", "-c", "mkdir -p /var/lib/grafana/plugins && wget https://download.sysdig.com/stable/grafana-sysdig-datasource/grafana-sysdig-datasource-v0.9.tgz -O sysdig.tgz && tar zxf sysdig.tgz -C /var/lib/grafana/plugins && true"]
+          volumeMounts:
+          - mountPath: "/var/lib/grafana"
+            name: storage
+

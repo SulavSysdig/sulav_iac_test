@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-client-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apache-client
+  template:
+    metadata:
+      labels:
+        app: apache-client
+    spec:
+      hostname: vuln-apache-client
+      containers:
+      - name: apache-client
+        image: {{ include "vulnerabilities.image" . }}
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 10; done"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apache
+  template:
+    metadata:
+      labels:
+        app: apache
+    spec:
+      hostname: vuln-apache
+      containers:
+      - name: apache
+        image: {{ include "vulnerabilities.image" . }}
+

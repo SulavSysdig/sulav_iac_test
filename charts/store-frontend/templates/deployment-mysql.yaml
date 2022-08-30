@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "ping.mysql.labels" . | nindent 4 }}
+  name: {{ include "ping.fullname" . }}-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        {{- include "ping.mysql.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+          {{- include "ping.mysql.selectorLabels" . | nindent 8}}
+    spec:
+      serviceAccountName: {{ include "ping.fullname" . }}
+      securityContext:
+        runAsUser: {{ default 0 .Values.mysql.runAsUser }}
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: foobar
+        - name: MYSQL_DATABASE
+          value: employees
+        - name: SYSDIG_AGENT_CONF
+          value: 'app_checks: [{name: mysql, check_module: mysql, pattern: {comm:
+            mysqld}, conf: { server: 127.0.0.1, user: root, pass: foobar }}]'
+        image: {{ include "ping.mysql.image" . }}
+        imagePullPolicy: Always
+        name: {{ include "ping.fullname" . }}-mysql
+        ports:
+        - containerPort: 3306
+          name: mysql
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: data
+      volumes:
+        - name: data
+          emptyDir: {}

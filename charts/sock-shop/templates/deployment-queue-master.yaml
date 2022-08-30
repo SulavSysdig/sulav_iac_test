@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sock-shop.fullname" . }}-queue-master
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.queue-master.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sock-shop.queue-master.labels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        {{- include "sock-shop.common.labels" . | nindent 8 }}
+        {{- include "sock-shop.queue-master.labels" . | nindent 8 }}
+{{ if .Values.queuemaster.prometheus.active }}
+      annotations:
+        {{- include "sock-shop.queue-master.annotations" . | nindent 8 }}
+{{ end }}
+    spec:
+      serviceAccountName: {{ template "sock-shop.serviceAccountName" .}}
+      containers:
+      - name: queue-master
+        image: {{ include "sock-shop.queue-master.image" . }}
+        ports:
+        - containerPort: 80
+        resources:
+{{ toYaml .Values.queuemaster.resources | indent 10 }}
+      nodeSelector:
+        beta.kubernetes.io/os: linux

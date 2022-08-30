@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-end
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.front-end.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: 80
+    targetPort: 8079
+  selector:
+    {{- include "sock-shop.front-end.labels" . | nindent 4 }}
+---
+{{- if .Values.frontend.externalAccess -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-end-external
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.front-end-external.labels" . | nindent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8079
+  selector:
+    {{- include "sock-shop.front-end.labels" . | nindent 4 }}
+{{- end -}}

@@ -1,0 +1,15 @@
+{{- if .Values.ingress.enabled }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "grafana-sysdig.fullname" . }}-ing
+spec:
+  rules:
+  - host: {{ .Values.ingress.host }}
+    http:
+      paths:
+      - backend:
+          serviceName: {{ include "grafana-sysdig.fullname" . }}
+          servicePort: 3000
+{{- end }}

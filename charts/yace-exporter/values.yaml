@@ -1,0 +1,27 @@
+name: yace-exporter
+
+prometheus:
+  active: true
+  port: "5000"
+  path: "/metrics"
+
+awsCredentials: |
+  W2RlZmF1bHRdCmF3222222222222222222222222222JQTRKUlhXNVpWU0Y2NUlRU0IKYXdzX3Nl
+  Y3JldF9hY2Nlc3NaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaYRjVVKytHWmw4SkdkOS8xeUNKTXQ0
+  Sgo=
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "200m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+image:
+  registry: quay.io
+  repository: invisionag/yet-another-cloudwatch-exporter
+  tag: v0.18.0-alpha
+
+discovery:
+  jobs: []

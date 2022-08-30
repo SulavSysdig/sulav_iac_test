@@ -1,0 +1,16 @@
+releases:
+
+  - name: money-sink
+    namespace: money-sink
+    chart: ../charts/flask-chart
+    atomic: true
+    values:
+    - resources:
+        requests:
+          memory: 2G
+          cpu: 2500m
+        limits:
+          memory: 4G
+          cpu: "4"
+
+

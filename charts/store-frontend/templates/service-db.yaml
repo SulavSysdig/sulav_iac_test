@@ -1,0 +1,14 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+# Same service as "mysql" but different name, as it is used like "db" service name in last steps of hack.sh
+  name: db
+spec:
+  selector:
+        {{- include "ping.mysql.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: mysql
+    protocol: TCP
+    port: 3306
+    targetPort: 3306

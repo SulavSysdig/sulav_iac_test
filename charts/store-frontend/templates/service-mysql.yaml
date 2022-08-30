@@ -1,0 +1,15 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+# We don't use the fullname or it will break the connection to mysql
+#  name: {{ include "ping.fullname" . }}-mysql
+  name: mysql
+spec:
+  selector:
+        {{- include "ping.mysql.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: mysql
+    protocol: TCP
+    port: 3306
+    targetPort: 3306

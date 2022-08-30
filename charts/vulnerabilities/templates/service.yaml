@@ -1,0 +1,36 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: apache-www-svc
+spec:
+  selector:
+    app: apache
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 80
+---
+# This is a "fake" external service that only allows the hostname
+# "vuln-apache", which is the name of the apache + php container, to
+# resolve.
+#
+# The container name/hostname has to resolve to avoid a 60 second
+# delay when starting sendmail. See http://selliott.org/node/40 for
+# more information.
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: vuln-apache
+spec:
+  selector:
+    app: no-such-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8192
+  externalIPs:
+    - 10.2.3.4

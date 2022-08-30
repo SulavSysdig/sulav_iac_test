@@ -1,0 +1,57 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ include "example-go-app.fullname" . }}-brownie
+  labels:
+    {{- include "example-go-app.brownie.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+    {{- include "example-go-app.brownie.selectorLabels" . | nindent 6 }}
+  template:
+    spec:
+      containers:
+        - name: brownie
+          image: {{ include "example-go-app.brownie.image" . }}
+          env:
+            - name: VOTE
+              value: {{ include "example-go-app.fullname" . }}-hashbrowns
+            - name: PORT
+              value: "8080"
+            - name: URL
+              value: "hash"
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 32Mi
+    metadata:
+      labels:
+      {{- include "example-go-app.brownie.selectorLabels" . | nindent 8 }}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ include "example-go-app.fullname" . }}-hashbrowns
+  labels:
+        {{- include "example-go-app.hashbrowns.labels" . | nindent 4 }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+        {{- include "example-go-app.hashbrowns.selectorLabels" . | nindent 6 }}
+  template:
+    spec:
+      containers:
+        - name: hashbrowns
+          image: {{ include "example-go-app.hashbrowns.image" . }}
+          resources:
+            limits:
+              memory: 64Mi
+            requests:
+              memory: 32Mi
+    metadata:
+      labels:
+        {{- include "example-go-app.hashbrowns.selectorLabels" . | nindent 8 }}

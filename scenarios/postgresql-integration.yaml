@@ -1,0 +1,43 @@
+repositories:
+  - name: promcat-integrations
+    url: https://sysdiglabs.github.io/integrations-charts/
+  - name: incubator
+    url: https://charts.helm.sh/incubator/
+
+
+releases:
+  - name: postgresql-exporter-secret
+    chart: incubator/raw
+    namespace: vote
+    values:
+      - resources:
+        - apiVersion: v1
+          data:
+            password: "cGFzc3dvcmQ="
+            username: "cG9zdGdyZXNfZXhwb3J0ZXI="
+          kind: Secret
+          metadata:
+            name: postgresql-exporter
+            namespace: vote
+          type: Opaque
+
+  - name: example-voting-app
+    namespace: vote
+    chart: ../charts/example-voting-app
+    atomic: true
+
+  - name: postgresql-exporter
+    namespace: vote
+    chart: promcat-integrations/postgresql-exporter
+    atomic: true
+    values:
+      - namespaceName: "vote"
+        workloadType: "Deployment"
+        workloadName: "db"
+        dbInstance:
+          host: "db"
+          port: "5432"
+        image:
+          tag: 0.9.0
+
+

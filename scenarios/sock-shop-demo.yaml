@@ -1,0 +1,267 @@
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+releases:
+
+  # Deploy sock shop
+  - name: sock-shop
+    namespace: sock-shop
+    chart: ../charts/sock-shop
+
+  # Mongodb exporter in orders-db
+  - name: orders-mongoexp
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-mongodb-exporter
+    values:
+      - fullnameOverride: "orders-mongodb-exporter"
+        podAnnotations:
+          promcat.sysdig.com/integration_type: "mongodb"
+          promcat.sysdig.com/target_ns: "sock-shop"
+          promcat.sysdig.com/target_workload_type: "deployment"
+          promcat.sysdig.com/target_workload_name: "sock-shop-orders-db"
+          promcat.sysdig.com/port: "9216"
+        serviceMonitor:
+          enabled: false
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        mongodb:
+          uri: mongodb://orders-db:27017
+    
+    # Mongodb exporter in carts-db
+  - name: carts-mongoexp
+    namespace: sock-shop
+    needs: ["sock-shop/orders-mongoexp"]
+    chart: prometheus-community/prometheus-mongodb-exporter
+    values:
+      - fullnameOverride: "carts-mongodb-exporter"
+        podAnnotations:
+          promcat.sysdig.com/integration_type: "mongodb"
+          promcat.sysdig.com/target_ns: "sock-shop"
+          promcat.sysdig.com/target_workload_type: "deployment"
+          promcat.sysdig.com/target_workload_name: "sock-shop-carts-db"
+          promcat.sysdig.com/port: "9216"
+        serviceMonitor:
+          enabled: false
+        serviceAccount:
+          create: false
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        mongodb:
+          uri: mongodb://carts-db:27017
+
+   # RabbitMQ exporter
+  - name: rabbitmq-exporter
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-rabbitmq-exporter
+    values:
+      - annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "9419"
+        rabbitmq:
+          capabilities: ""
+          url: "http://rabbitmq:15672"
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+  
+  - name: cataloguedb-mysql-exporter
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-mysql-exporter
+    values:
+      - mysql:
+          pass: fake_password
+          host: catalogue-db
+          user: root
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          
+  # Trigger to send event with the setup fixed
+  - name: sock-shop-delay-monitor-event-trigger
+    namespace: sock-shop
+    chart: ../charts/monitor-event-trigger
+    atomic: true
+    values:
+      - apitoken: {{ requiredEnv "MONITOR_API_TOKEN" }}
+        schedule: "0 0,6,12,18 * * *"
+        eventPayload: '{"event":{"name":"Sock-shop - New cartdb version deployed ","filter":"kubernetes.cluster.name = \"demo-kube-gke\" and kubernetes.deployment.name = \"sock-shop-carts-db\" and kubernetes.namespace.name = \"sock-shop\" and kubernetes.service.name = \"carts-db\"","description":"deploy","severity":"2","tags":{"build":"lag"}}}'
+
+  # Trigger to setup carts-db deployment with wrong values
+  - name: sock-shop-delay-trigger
+    namespace: sock-shop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "0 0,6,12,18 * * *"
+        script: "kubectl apply -f /manifests"
+        manifests:
+          cart-db-delay-deployment.yaml: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: sock-shop-carts-db
+              labels:
+                helm.sh/chart: sock-shop-0.1.0
+                app.kubernetes.io/version: "1.0"
+                app.kubernetes.io/managed-by: Helm
+                app.kubernetes.io/name: sock-shop-carts-db
+                app.kubernetes.io/instance: sock-shop
+              annotations:
+                meta.helm.sh/release-name: orders-mongoexp
+                meta.helm.sh/rele1ase-namespace: sock-shop
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: sock-shop-carts-db
+                  app.kubernetes.io/instance: sock-shop
+              template:
+                metadata:
+                  labels:
+                    helm.sh/chart: sock-shop-0.1.0
+                    app.kubernetes.io/version: "1.0"
+                    app.kubernetes.io/managed-by: Helm
+                    app.kubernetes.io/name: sock-shop-carts-db
+                    app.kubernetes.io/instance: sock-shop
+                spec:
+                  containers:
+                  - name: carts-db
+                    image: mongo
+                    ports:
+                    - name: mongo
+                      containerPort: 27017
+                    resources:
+                      limits:
+                        cpu: 10m
+                        memory: 300Mi
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                    securityContext:
+                      capabilities:
+                        drop:
+                          - all
+                        add:
+                          - CHOWN
+                          - SETGID
+                          - SETUID
+                      readOnlyRootFilesystem: true
+                    volumeMounts:
+                    - mountPath: /tmp
+                      name: tmp-volume
+                  volumes:
+                    - name: tmp-volume
+                      emptyDir:
+                        medium: Memory
+                  nodeSelector:
+                    beta.kubernetes.io/os: linux
+
+  # Trigger to reset load-generator in every change
+  - name: sock-shop-loadgen-reset-trigger
+    namespace: sock-shop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "5 0,5,6,11,12,17,18,23 * * *"
+        script: |
+          #!/bin/sh
+          kubectl scale deployment sock-shop-loadgenerator --namespace=sock-shop --replicas=0
+          sleep 5
+          kubectl scale deployment sock-shop-loadgenerator --namespace=sock-shop --replicas=1
+          exit 0
+
+  # Trigger to send event with the setup fixed
+  - name: sock-shop-fix-monitor-event-trigger
+    namespace: sock-shop
+    chart: ../charts/monitor-event-trigger
+    atomic: true
+    values:
+      - apitoken: {{ requiredEnv "MONITOR_API_TOKEN" }}
+        schedule: "0 5,11,17,23 * * *"
+        eventPayload: '{"event":{"name":"Sock-shop - New cartdb version deployed ","filter":"kubernetes.cluster.name = \"demo-kube-gke\" and kubernetes.deployment.name = \"sock-shop-carts-db\" and kubernetes.namespace.name = \"sock-shop\" and kubernetes.service.name = \"carts-db\"","description":"deploy","severity":"2","tags":{"build":"lag"}}}'
+
+  # Trigger to setup carts-db deployment with proper values
+  - name: sock-shop-fix-trigger
+    namespace: sock-shop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - script: "kubectl apply -f /manifests"
+        schedule: "0 5,11,17,23 * * *"
+        manifests:
+          cart-db-fix-deployment.yaml: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: sock-shop-carts-db
+              labels:
+                helm.sh/chart: sock-shop-0.1.0
+                app.kubernetes.io/version: "1.0"
+                app.kubernetes.io/managed-by: Helm
+                app.kubernetes.io/name: sock-shop-carts-db
+                app.kubernetes.io/instance: sock-shop
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: sock-shop-carts-db
+                  app.kubernetes.io/instance: sock-shop
+              template:
+                metadata:
+                  labels:
+                    helm.sh/chart: sock-shop-0.1.0
+                    app.kubernetes.io/version: "1.0"
+                    app.kubernetes.io/managed-by: Helm
+                    app.kubernetes.io/name: sock-shop-carts-db
+                    app.kubernetes.io/instance: sock-shop
+                spec:
+                  containers:
+                  - name: carts-db
+                    image: mongo
+                    ports:
+                    - name: mongo
+                      containerPort: 27017
+                    resources:
+                      limits:
+                        cpu: 100m
+                        memory: 300Mi
+                      requests:
+                        cpu: 100m
+                        memory: 64Mi
+                    securityContext:
+                      capabilities:
+                        drop:
+                          - all
+                        add:
+                          - CHOWN
+                          - SETGID
+                          - SETUID
+                      readOnlyRootFilesystem: true
+                    volumeMounts:
+                    - mountPath: /tmp
+                      name: tmp-volume
+                  volumes:
+                    - name: tmp-volume
+                      emptyDir:
+                        medium: Memory
+                  nodeSelector:
+                    beta.kubernetes.io/os: linux

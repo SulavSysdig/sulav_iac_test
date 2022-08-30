@@ -1,0 +1,30 @@
+releases:
+  - name: nginx-crashloop
+    namespace: nginx-crashloop
+    chart: ../charts/nginx-crashloop
+    atomic: true
+    hooks:
+    - events: ["presync"]
+      showlogs: true
+      command: "sh"
+      args:
+        - "-c"
+        - "kubectl label node `kubectl get nodes --selector='!node-role.kubernetes.io/master' -o jsonpath='{.items[0].metadata.name}'` nginxcrash=allowed || true"
+
+  - name: nginx-crashloopbackoff-trigger
+    namespace: nginx-crashloop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "6 11 * * *"
+        script: |
+          #!/bin/sh
+          for i in `seq 1 7`;
+          do
+            kubectl scale deployment nginx-crashloop-nginx --namespace=nginx-crashloop --replicas=3
+            sleep 40
+            kubectl scale deployment nginx-crashloop-nginx --namespace=nginx-crashloop --replicas=0
+            sleep 10
+          done
+
+          exit 0

@@ -1,0 +1,14 @@
+flaskbackend:
+  image:
+    repository: sysdiglabs/flaskbackend
+    tag: 0.1
+
+nginx:
+  image:
+    repository: sysdiglabs/istio-nginx
+    tag: 0.1
+
+loadgen:
+  image:
+    repository: sysdiglabs/loadgen
+    tag: 0.1

@@ -1,0 +1,46 @@
+repositories:
+releases:
+
+  - name: configmap-with-private-credentials
+    namespace: kubernetes-audit-log
+    chart: ../charts/kubectl-trigger
+    values:
+      - schedule: "15 8 * * *"
+        manifests:
+          aws-creds.yaml: |
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: aws-creds
+              namespace: kubernetes-audit-log
+            data:
+              aws-creds: |
+                aws_access_key_id = "foo"
+                aws_s3_access_key_id = "bar"
+
+  - name: ingress-without-tls
+    namespace: kubernetes-audit-log
+    chart: ../charts/kubectl-trigger
+    values:
+      - schedule: "20 10 * * *"
+        manifests:
+          ingress-without-tls.yaml: |
+            apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: traefik-web-ui
+              namespace: kubernetes-audit-log
+              annotations:
+                kubernetes.io/ingress.class: traefik
+            spec:
+              rules:
+              - host: traefik-ui.minikube
+                http:
+                  paths:
+                  - backend:
+                      service:
+                        name: traefik-web-ui
+                        port:
+                          number: 80
+                    pathType: Prefix
+                    path: /

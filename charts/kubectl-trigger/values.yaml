@@ -1,0 +1,31 @@
+# Default values for kube-alert-trigger.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: lachlanevenson/k8s-kubectl
+  tag: v1.16.2
+  pullPolicy: IfNotPresent
+
+# kubeconfigSecretName indicates the name of the secret that contains the kubeconfig file, e.g. "johndoe-kubeconfig", leave blank no to use
+kubeconfigSecretName: ""
+
+# kubeconfig for including inline file content, do not use at the same time as kubeconfigSecretName
+kubeconfig: ""
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+schedule: "0 6 * * *"
+failedJobsHistoryLimit: 5
+successfulJobsHistoryLimit: 2
+restartPolicy: Never
+concurrencyPolicy: Forbid
+
+interpreter: '/bin/sh'
+script: "kubectl apply -f /manifests; sleep 120; kubectl delete -f /manifests"
+manifests: {}
+
+apitoken:

@@ -1,0 +1,8 @@
+apiVersion: v2
+name: log4j-application
+description: A java application vulnerable to Log4j. Available in https://github.com/sysdiglabs/...
+type: application
+version: 0.1.0
+appVersion: 1.0.0
+maintainers:
+  - name: Sysdig

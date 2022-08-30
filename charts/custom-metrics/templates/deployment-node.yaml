@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "custom-metrics.node.labels" . | nindent 4}}
+  name: {{ include "custom-metrics.fullname" . }}-node
+spec:
+  replicas: {{ .Values.node.replicaCount }}
+  selector:
+    matchLabels:
+        {{- include "custom-metrics.node.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      annotations:
+              {{- if  .Values.node.prometheusScraping }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+            {{- end }}
+      labels:
+          {{- include "custom-metrics.node.selectorLabels" . | nindent 8}}
+    spec:
+      containers:
+      - image: {{ include "custom-metrics.node.image" . }}
+        name: prom-example-node
+        resources:
+{{ toYaml .Values.node.resources | indent 10}}
+

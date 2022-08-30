@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "custom-metrics.java.labels" . | nindent 4}}
+  name: {{ include "custom-metrics.fullname" . }}-java
+spec:
+  replicas: {{ .Values.java.replicaCount }}
+  selector:
+    matchLabels:
+        {{- include "custom-metrics.java.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      annotations:
+              {{- if  .Values.java.prometheusScraping }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+            {{- end }}
+      labels:
+          {{- include "custom-metrics.java.selectorLabels" . | nindent 8}}
+    spec:
+      containers:
+      - image: {{ include "custom-metrics.java.image" . }}
+        name: prom-example-java
+        resources:
+{{ toYaml .Values.java.resources | indent 10}}
+

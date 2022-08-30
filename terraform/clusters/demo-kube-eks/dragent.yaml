@@ -1,0 +1,46 @@
+sysdig:
+  settings:
+    snaplen: 512
+    feature:
+      mode: troubleshooting
+
+    jmx:
+      per_process_beans:
+        voting:
+          pattern: "worker-jar"
+          beans:
+            - query: "worker:type=Metric,*"
+              attributes:
+                - name: Dogs
+                  alias: Dogs
+                - name: Cats
+                  alias: Cats
+                - name: Votes
+                  alias: Votes
+
+    10s_flush_enable: true
+    prometheus:
+      enabled: true
+      histograms: true
+      ingest_raw: true
+      use_promscrape: true
+
+    app_checks:
+      - name: ntp
+        check_module: ntp
+        pattern:
+          comm: ntpd
+      - name: hash-browns
+        check_module: go_expvar
+        pattern:
+          comm: server
+        conf:
+          expvar_url: "http://localhost:{port}/debug/vars" # automatically match url using the listening port
+          # Add custom metrics if you want
+          # metrics:
+          #   - path: points_processed
+          #     type: rate # rate or gauge
+          #     alias: points.processed.count
+
+    percentiles: [50, 95, 99]
+    tags: role:cluster

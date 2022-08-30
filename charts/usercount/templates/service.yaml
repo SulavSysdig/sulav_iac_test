@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "usercount.fullname" . }}-usercount
+  labels:
+    {{- include "usercount.usercount.labels" . | nindent 4 }}
+spec:
+  ports:
+  - name: http
+    port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    {{- include "usercount.usercount.selectorLabels" . | nindent 4 }}

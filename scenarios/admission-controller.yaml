@@ -1,0 +1,45 @@
+repositories:
+  - name: sysdig
+    url: https://charts.sysdig.com
+  - name: incubator
+    url: https://charts.helm.sh/incubator
+releases:
+  - name: admission-controller-namespaces
+    chart: incubator/raw
+    values:
+      - resources:
+        - apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: sysdig-admission-controller
+          spec:
+        - apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: scanned
+          spec:
+
+  - name: admission-controller
+    namespace: sysdig-admission-controller
+    chart: sysdig/admission-controller
+    needs: ["admission-controller-namespaces"]
+    values:
+    - sysdig:
+        secureAPIToken: {{ requiredEnv "KUBE_SECURE_API_TOKEN" }}
+        agentKey: {{ requiredEnv "KUBE_SYSDIG_AGENT_ACCESS_KEY" }}
+        url: https://app.sysdigcloud.com
+      clusterName: demo-kube-aws
+      features:
+        publishOnSecureEventFeed: false
+
+  - name: admission-controller-bad-pod-trigger
+    namespace: sysdig-admission-controller
+    chart: ../charts/kubectl-trigger
+    needs: ["admission-controller-namespaces"]
+    values:
+      - schedule: "10 11 * * *"
+        script: |
+            #!/bin/bash
+            kubectl -n scanned run mysql --image=mysql
+            sleep 5
+            kubectl -n scanned delete deployment mysql

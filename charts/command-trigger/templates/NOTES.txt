@@ -1,0 +1,5 @@
+A command-trigger CronJob has been deployed in your cluster.
+
+It will execute the command periodically scheduled: {{ .Values.schedule }}
+
+No further action should be required.

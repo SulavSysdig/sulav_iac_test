@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: "1.0"
+description: A simple php form to ping an address with a database to use as an example for security scenarios
+name: ping
+version: 0.2.1
+home: https://github.com/sysdiglabs/demoenv-scenarios
+icon: https://sysdig.com/wp-content/uploads/2019/10/sysdig-logo.svg
+maintainers:
+  - name: Sysdig

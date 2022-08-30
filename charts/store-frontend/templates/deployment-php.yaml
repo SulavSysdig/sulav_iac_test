@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "ping.php.labels" . | nindent 4 }}
+  name: {{ include "ping.fullname" . }}-php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        {{- include "ping.php.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ping.php.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ping.fullname" . }}
+      securityContext:
+        runAsUser: {{ default 0 .Values.php.runAsUser }}
+      containers:
+      - env:
+        - name: DB_HOST
+          value: mysql
+        image: {{ include "ping.php.image" . }}
+        imagePullPolicy: Always
+        name: {{ include "ping.fullname" . }}-php
+        ports:
+        - containerPort: {{ .Values.php.apache_port | default 80 }}
+          name: php
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /etc/apache2/ports.conf
+            name: php-config
+            subPath: ports.conf
+          - mountPath: /var/run/apache2
+            name: php-pid
+      volumes:
+        - name: php-config
+          configMap:
+            name: {{ include  "ping.fullname" . }}-php-config
+            items:
+              - key: ports.conf
+                path: ports.conf
+        - name: php-pid
+          emptyDir: {}

@@ -1,0 +1,72 @@
+golang:
+  replicaCount: 1
+
+  prometheusScraping: true
+
+  image:
+    repository: tembleking/prom-example-golang
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources:
+#    limits:
+#      cpu: 100m
+#      memory: 128Mi
+#    requests:
+#      cpu: 100m
+#      memory: 128Mi
+
+
+java:
+  replicaCount: 1
+
+  prometheusScraping: true
+
+  image:
+    repository: tembleking/prom-example-java
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+#    limits:
+#      cpu: 100m
+#      memory: 128Mi
+#    requests:
+#      cpu: 100m
+#      memory: 128Mi
+
+node:
+  replicaCount: 1
+
+  prometheusScraping: true
+
+  image:
+    repository: tembleking/prom-example-node
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+python:
+  replicaCount: 1
+
+  prometheusScraping: true
+
+  image:
+    repository: tembleking/prom-example-python
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+#  limits:
+#    cpu: 100m
+#    memory: 128Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi

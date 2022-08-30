@@ -1,0 +1,216 @@
+apiVersion: v1
+data:
+  register.py: |
+    #!/usr/bin/python
+    #
+    # Copyright 2018 Google LLC
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #      http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+
+    import random
+    from locust import HttpLocust, TaskSet
+    import base64
+
+
+    def register(l):
+        l.client.post("/register",
+            data='{"username": "john", "password": "lidxfomd", "email": "john@be.les", "firstName": "John", "lastName": "Lemon"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+        l.client.post("/addresses",
+            data='{"number": "122", "street": "Abbey Road", "city": "Liverpool", "postcode": "2222", "country": "OK"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+        l.client.post("/cards",
+            data='{"longNum": "4444444444", "expires": "4444", "ccv": "454"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+
+        l.client.post("/register",
+            data='{"username": "paul", "password": "231398kj", "email": "paul@be.les", "firstName": "Paul", "lastName": "McCardo"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+        l.client.post("/addresses",
+            data='{"number": "22", "street": "Yellow Sub", "city": "Octopussy", "postcode": "2222", "country": "OK"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+        l.client.post("/cards",
+            data='{"longNum": "4444444444", "expires": "4444", "ccv": "454"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+
+        l.client.post("/register",
+            data='{"username": "ringo", "password": "f9x38m4f34", "email": "ringo@be.les", "firstName": "Ringo", "lastName": "Stuck"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+        l.client.post("/addresses",
+            data='{"number": "232", "street": "Penny lane", "city": "Sgt Pepper", "postcode": "2222", "country": "OK"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+        l.client.post("/cards",
+            data='{"longNum": "4444444444", "expires": "4444", "ccv": "454"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+
+        l.client.post("/register",
+            data='{"username": "george", "password": "kjf4hr985", "email": "george@be.les", "firstName": "George", "lastName": "Haribo"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+        l.client.post("/addresses",
+            data='{"number": "23454", "street": "Yesterday", "city": "Help", "postcode": "2222", "country": "OK"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+        l.client.post("/cards",
+            data='{"longNum": "4444444444", "expires": "4444", "ccv": "454"}',
+            headers={'Content-Type':'application/json; charset=UTF-8'},
+            cookies=l.client.cookies.get_dict()
+        )
+
+    class UserBehavior(TaskSet):
+
+        def on_start(self):
+            register(self)       
+
+    class WebsiteUser(HttpLocust):
+        task_set = UserBehavior
+        min_wait = 300000
+        max_wait = 30000000
+  locustfile.py: |
+    #!/usr/bin/python
+    #
+    # Copyright 2018 Google LLC
+    #
+    # Licensed under the Apache License, Version 2.0 (the "License");
+    # you may not use this file except in compliance with the License.
+    # You may obtain a copy of the License at
+    #
+    #      http://www.apache.org/licenses/LICENSE-2.0
+    #
+    # Unless required by applicable law or agreed to in writing, software
+    # distributed under the License is distributed on an "AS IS" BASIS,
+    # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    # See the License for the specific language governing permissions and
+    # limitations under the License.
+
+    import random
+    from locust import HttpLocust, TaskSet
+    import base64
+
+
+    userAndPass1 = base64.b64encode(b"john:lidxfomd").decode("ascii")
+    userAndPass2 = base64.b64encode(b"paul:231398kj").decode("ascii")
+    userAndPass3 = base64.b64encode(b"ringo:f9x38m4f34").decode("ascii")
+    userAndPass4 = base64.b64encode(b"george:kjf4hr985").decode("ascii")
+    authorization =[
+        userAndPass1,
+        userAndPass2,
+        userAndPass3,
+        userAndPass4,
+    ]
+
+
+    products = [
+        '3395a43e-2d88-40de-b95f-e00e1502085b',
+        '510a0d7e-8e83-4193-b483-e27e09ddc34d',
+        '808a2de1-1aaa-4c25-a9b9-6612e8f29a38',
+        '819e1fbf-8b7e-4f6d-811f-693534916a8b',
+        '837ab141-399e-4c1f-9abc-bace40296bac',
+        'a0a4f044-b040-410d-8ead-4de0446aec7e',
+        'd3588630-ad8e-49df-bbd7-3167f7efb246',
+        'zzz4f044-b040-410d-8ead-4de0446aec7e'
+    ]
+
+
+    def index(l):
+        l.client.get("/")
+
+    def login(l):
+        auth = random.choice(authorization)
+        l.client.get(
+            "/login",
+            headers={"Authorization":"Basic "+auth}
+        )
+
+    def category(l):
+        l.client.get("/category.html")
+
+    def browseProduct(l):
+        l.client.get("/detail.html?id=" + random.choice(products))
+
+    def viewCart(l):
+        product=random.choice(products)
+        addToCart(l,product)
+        l.client.get(
+            "/basket.html",
+            cookies=l.client.cookies.get_dict()
+        )
+        removeFromCart(l,product)
+
+    def addToCart(l,product):
+        if product == "random":
+            product = random.choice(products)    
+        l.client.post(
+            "/cart", 
+            data='{"id": "'+product+'"}',
+            cookies=l.client.cookies.get_dict(),
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+
+    def removeFromCart(l,product):
+        if product == "random":
+            product = random.choice(products)    
+        l.client.delete(
+            "/cart/"+product, 
+            cookies=l.client.cookies.get_dict()
+        )
+
+    def checkout(l):
+        l.client.post(
+            "/orders",
+            cookies=l.client.cookies.get_dict(),
+            headers={'Content-Type':'application/json; charset=UTF-8'}
+        )
+
+    def buy(l):
+        addToCart(l,"random")
+        checkout(l)
+
+
+    class UserBehavior(TaskSet):
+
+        def on_start(self):
+            login(self)
+
+        tasks = {
+            index: 20,
+            browseProduct: 100,
+            category: 50,
+            viewCart: 20,
+            buy: 1}
+
+    class WebsiteUser(HttpLocust):
+        task_set = UserBehavior
+        min_wait = 100
+        max_wait = 1000
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "sock-shop.loadgenerator.labels" . | nindent 4 }}
+  name: {{ include "sock-shop.fullname" . }}-loadfile

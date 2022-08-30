@@ -1,0 +1,197 @@
+name: sock-shop
+
+cartsdb:
+  image:
+    repository: mongo
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+
+carts:
+  image:
+    repository: weaveworksdemos/carts
+    tag: 0.4.8
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 500Mi
+  prometheus:
+    active: true
+    port: "80"
+
+cataloguedb:
+  image:
+    repository: weaveworksdemos/catalogue-db
+    tag: 0.3.0
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+
+catalogue:
+  image:
+    repository: weaveworksdemos/catalogue
+    tag: 0.3.5
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+  prometheus:
+    active: false
+    port: "80"
+
+frontend:
+  image:
+    repository: weaveworksdemos/front-end
+    tag: 0.3.12
+  resources:
+    requests:
+      cpu: 200m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+  externalAccess: false
+  prometheus:
+    active: true
+    port: "8079"
+
+ordersdb:
+  image:
+    repository: mongo
+    tag: latest
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+
+orders:
+  image:
+    repository: weaveworksdemos/orders
+    tag: 0.4.7
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  prometheus:
+    active: true
+    port: "80"
+
+payment:
+  image:
+    repository: weaveworksdemos/payment
+    tag: 0.4.3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+  prometheus:
+    active: true
+    port: "80"
+
+queuemaster:
+  image:
+    repository: weaveworksdemos/queue-master
+    tag: 0.3.1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 200Mi
+    limits:
+      cpu: 1000m
+      memory: 850Mi
+  prometheus:
+    active: true
+    port: "80"
+    path: "/prometheus"
+
+rabbitmq:
+  image:
+    repository: rabbitmq
+    tag: 3.6.8-management
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+
+shipping:
+  image:
+    repository: weaveworksdemos/shipping
+    tag: 0.4.8
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  prometheus:
+    active: true
+    port: "80"
+
+userdb:
+  image:
+    repository: weaveworksdemos/user-db
+    tag: 0.4.0
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+
+user:
+  image:
+    repository: weaveworksdemos/user
+    tag: 0.4.7
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 400m
+      memory: 300Mi
+  prometheus:
+    active: true
+    port: "80"
+
+loadgenerator:
+  image:
+    registry: gcr.io
+    repository: google-samples/microservices-demo/loadgenerator
+    tag: v0.1.3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  concurrentusers: 18

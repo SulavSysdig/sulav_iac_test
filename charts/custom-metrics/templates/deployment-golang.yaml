@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "custom-metrics.golang.labels" . | nindent 4}}
+  name: {{ include "custom-metrics.fullname" . }}-golang
+spec:
+  replicas: {{ .Values.golang.replicaCount }}
+  selector:
+    matchLabels:
+        {{- include "custom-metrics.golang.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      annotations:
+              {{- if  .Values.golang.prometheusScraping }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+            {{- end }}
+      labels:
+          {{- include "custom-metrics.golang.selectorLabels" . | nindent 8}}
+    spec:
+      containers:
+      - image: {{ include "custom-metrics.golang.image" . }}
+        name: prom-example-golang
+        resources:
+{{ toYaml .Values.golang.resources | indent 10}}

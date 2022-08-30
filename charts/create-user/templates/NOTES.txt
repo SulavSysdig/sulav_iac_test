@@ -1,0 +1,2 @@
+A new "{{ .Values.username }}-kubeconfig" secret with kubeconfig for username "{{ .Values.username }}" should have been created in namespace "{{ .Release.Namespace }}".
+

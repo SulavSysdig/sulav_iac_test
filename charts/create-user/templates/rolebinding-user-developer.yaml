@@ -1,0 +1,18 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: "{{.Release.Namespace}}"
+  name: "{{.Release.Name}}-user-dev"
+  labels:
+    app.kubernetes.io/managed-by: {{.Release.Service | quote }}
+    app.kubernetes.io/instance: {{.Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+subjects:
+- kind: User
+  name: "{{.Values.username}}"
+  namespace: "{{.Release.Namespace}}"
+roleRef:
+  kind: Role
+  name: "{{.Release.Name}}-dev"
+  apiGroup: rbac.authorization.k8s.io

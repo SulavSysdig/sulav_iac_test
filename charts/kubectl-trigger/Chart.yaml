@@ -1,0 +1,9 @@
+apiVersion: v1
+appVersion: "1.0"
+description: A Helm chart for Kubernetes
+name: kubectl-trigger
+version: 0.1.2
+home: https://github.com/sysdiglabs/demoenv-scenarios
+icon: https://sysdig.com/wp-content/uploads/2019/10/sysdig-logo.svg
+maintainers:
+  - name: Sysdig

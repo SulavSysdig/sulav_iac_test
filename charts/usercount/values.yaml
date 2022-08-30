@@ -1,0 +1,10 @@
+usercount:
+  image:
+    repository: sysdiglabs/usercount
+    tag: 0.1
+
+prometheus:
+  image:
+    repository: prom/prometheus
+    tag: v2.7.1
+  runAsUser: 0

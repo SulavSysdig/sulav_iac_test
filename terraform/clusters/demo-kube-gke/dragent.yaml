@@ -1,0 +1,61 @@
+sysdig:
+  settings:
+    feature:
+      mode: troubleshooting
+    snaplen: 512
+    autodrop:
+      enabled: true
+      upper_threshold: 80
+    jmx:
+      per_process_beans:
+        voting:
+          pattern: "worker-jar"
+          beans:
+            - query: "worker:type=Metric,*"
+              attributes:
+                - name: Dogs
+                  alias: Dogs
+                - name: Cats
+                  alias: Cats
+                - name: Votes
+                  alias: Votes
+    #Enable k8s extra features
+    k8s_extra_resources:
+      include:
+        - persistentvolumes
+        - persistentvolumeclaims
+        - storageclasses
+        - horizontalpodautoscalers
+        - resourcequotas
+    #Enable prometheus metrics
+    promscrape_fastproto: true
+    metrics_excess_log: true
+    10s_flush_enable: true
+    use_promscrape: true
+    prometheus:
+      enabled: true
+      ingest_raw: true
+      ingest_calculated: false
+      max_metrics: 10000
+      max_metrics_per_process: 20000
+      prom_service_discovery: true
+    app_checks:
+      - name: mongodb
+        enabled: false
+      - name: ntp
+        check_module: ntp
+        pattern:
+          comm: ntpd
+      - name: hash-browns
+        check_module: go_expvar
+        pattern:
+          comm: server
+        conf:
+          expvar_url: "http://localhost:{port}/debug/vars" # automatically match url using the listening port
+          # Add custom metrics if you want
+          # metrics:
+          #   - path: points_processed
+          #     type: rate # rate or gauge
+          #     alias: points.processed.count
+    percentiles: [50, 95, 99]
+    tags: role:cluster

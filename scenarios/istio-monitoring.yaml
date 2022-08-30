@@ -1,0 +1,55 @@
+repositories:
+  #TODO: Istio 1.6 and higher is not available using Helm. Need to migrate to istioctl
+  - name: istio.io
+    url: https://storage.googleapis.com/istio-release/releases/1.5.10/charts/
+releases:
+  - name: istio-crd
+    namespace: istio-system
+    atomic: true
+    chart: istio.io/istio-init
+
+  - name: istio
+    namespace: istio-system
+    needs: ["istio-system/istio-crd"]
+    atomic: true
+    chart: istio.io/istio
+    # Wait for the jobs in istio-crd to be completed, or the CRDs won't be created yet
+    hooks:
+    - events: ["presync"]
+      showlogs: true
+      command: kubectl
+      args:
+      - "--context"
+      - "{{`{{.Release.KubeContext}}`}}"
+      - "-n"
+      - "{{`{{.Release.Namespace}}`}}"
+      - "wait"
+      - "--for"
+      - "condition=complete"
+      - "--timeout=60s"
+      - "job/istio-init-crd-all-1.5.10"
+    - events: ["presync"]
+      showlogs: true
+      command: kubectl
+      args:
+      - "--context"
+      - "{{`{{.Release.KubeContext}}`}}"
+      - "-n"
+      - "{{`{{.Release.Namespace}}`}}"
+      - "wait"
+      - "--for"
+      - "condition=complete"
+      - "--timeout=60s"
+      - "job/istio-init-crd-mixer-1.5.10"
+
+  - name: istio-bookinfo
+    namespace: istio-bookinfo
+    needs: ["istio-system/istio"]
+    atomic: true
+    chart: ../charts/istio-bookinfo
+
+  - name: istio-flasknginx
+    namespace: istio-flasknginx
+    needs: ["istio-system/istio"]
+    atomic: true
+    chart: ../charts/istio-flasknginx

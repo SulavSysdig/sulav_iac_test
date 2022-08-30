@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sock-shop.fullname" . }}-loadgenerator
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.loadgenerator.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sock-shop.loadgenerator.labels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        {{- include "sock-shop.common.labels" . | nindent 8 }}
+        {{- include "sock-shop.loadgenerator.labels" . | nindent 8 }}
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      serviceAccountName: {{ template "sock-shop.serviceAccountName" .}}
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: {{ include "sock-shop.loadgenerator.image" . }}
+        env:
+        - name: FRONTEND_ADDR
+          value: "front-end:80"
+        - name: USERS
+          value: "{{ .Values.loadgenerator.concurrentusers }}"
+        resources:
+{{ toYaml .Values.loadgenerator.resources | indent 10 }}
+        volumeMounts:
+          - name: {{ include "sock-shop.fullname" . }}-loadfile
+            mountPath: /locustfile.py
+            subPath: locustfile.py
+          - name: {{ include "sock-shop.fullname" . }}-loadfile
+            mountPath: /register.py
+            subPath: register.py
+      initContainers:
+      - name: register
+        image: {{ include "sock-shop.loadgenerator.image" . }}
+        command: ["/usr/local/bin/python","/usr/local/bin/locust","-n","12","-c","1","--no-web","--host","http://front-end:80","-f","register.py"]
+        env:
+        - name: FRONTEND_ADDR
+          value: "front-end:80"
+        resources:
+{{ toYaml .Values.loadgenerator.resources | indent 10 }}
+        volumeMounts:
+          - name: {{ include "sock-shop.fullname" . }}-loadfile
+            mountPath: /register.py
+            subPath: register.py
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: {{ include "sock-shop.fullname" . }}-loadfile
+          name: {{ include "sock-shop.fullname" . }}-loadfile

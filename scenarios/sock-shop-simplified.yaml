@@ -1,0 +1,294 @@
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+releases:
+
+  # Deploy sock shop
+  - name: sock-shop
+    namespace: sock-shop
+    chart: ../charts/sock-shop
+    values:
+      - cartsdb:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 10m
+              memory: 300Mi
+
+  # Mongodb exporter in orders-db
+  - name: orders-mongoexp
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-mongodb-exporter
+    values:
+      - fullnameOverride: "orders-mongodb-exporter"
+        podAnnotations:
+          promcat.sysdig.com/integration_type: "mongodb"
+          promcat.sysdig.com/target_ns: "sock-shop"
+          promcat.sysdig.com/target_workload_type: "deployment"
+          promcat.sysdig.com/target_workload_name: "sock-shop-orders-db"
+          promcat.sysdig.com/port: "9216"
+        serviceMonitor:
+          enabled: false
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        mongodb:
+          uri: mongodb://orders-db:27017
+    
+
+   # RabbitMQ exporter
+  - name: rabbitmq-exporter
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-rabbitmq-exporter
+    values:
+      - annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "9419"
+        rabbitmq:
+          capabilities: ""
+          url: "http://rabbitmq:15672"
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+  
+  - name: cataloguedb-mysql-exporter
+    namespace: sock-shop
+    chart: prometheus-community/prometheus-mysql-exporter
+    values:
+      - mysql:
+          pass: fake_password
+          host: catalogue-db
+          user: root
+        resources:
+          limits:
+            cpu: 250m
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          
+
+  # Trigger to send event with the setup fixed
+  - name: sock-shop-fix-monitor-event-trigger
+    namespace: sock-shop
+    chart: ../charts/monitor-event-trigger
+    atomic: true
+    values:
+      - apitoken: {{ requiredEnv "MONITOR_API_TOKEN" }}
+        schedule: "0,30 * * * *"
+        eventPayload: '{"event":{"name":"Holiday offer campaign sent to customers","filter":"kubernetes.cluster.name = \"demo-kube-gke\" and kubernetes.namespace.name = \"sock-shop\"","description":"deploy","severity":"2","tags":{"build":"lag"}}}'
+
+  # Trigger crashloopbackoff in mongo exporter
+  - name: sock-shop-crashloopbackoff-trigger
+    namespace: sock-shop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "25,55 * * * *"
+        script: "kubectl apply -f /manifests"
+        manifests:
+          order-mongo-exporter-crash.yaml: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: orders-mongodb-exporter
+              labels:
+                app.kubernetes.io/name: prometheus-mongodb-exporter
+                app.kubernetes.io/instance: orders-mongoexp
+                app.kubernetes.io/managed-by: Helm
+                helm.sh/chart: prometheus-mongodb-exporter-2.9.0
+              annotations:
+                {}
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: prometheus-mongodb-exporter
+                  app.kubernetes.io/instance: orders-mongoexp
+              template:
+                metadata:
+                  annotations:
+                    checksum/config: 4a39418397fc1bdefd74d92d7957052a315731133e33bad2c03f467e71020f3a
+                    promcat.sysdig.com/integration_type: mongodb
+                    promcat.sysdig.com/port: "9216"
+                    promcat.sysdig.com/target_ns: sock-shop
+                    promcat.sysdig.com/target_workload_name: sock-shop-orders-db
+                    promcat.sysdig.com/target_workload_type: deployment
+                  labels:
+                    app.kubernetes.io/name: prometheus-mongodb-exporter
+                    app.kubernetes.io/instance: orders-mongoexp
+                spec:
+                  serviceAccountName: orders-mongodb-exporter
+                  containers:
+                  - name: mongodb-exporter
+                    env:
+                      - name: MONGODB_URI
+                        valueFrom:
+                          secretKeyRef:
+                            name: orders-mongodb-exporter
+                            key: mongodb-uri
+                    image: "ssheehy/mongodb-exporter:0.10.0"
+                    imagePullPolicy: IfNotPresent
+                    args:
+                    - --web.listen-address=:9216
+                    - --collect.collection
+                    - --collect.database
+                    - --collect.indexusagexxxx
+                    - --collect.topmetrics
+                    - --collect.connpoolstats
+                    ports:
+                    - name: metrics
+                      containerPort: 9216
+                      protocol: TCP
+                    livenessProbe:
+                      httpGet:
+                        path: /
+                        port: metrics
+                      initialDelaySeconds: 10
+                    readinessProbe:
+                      httpGet:
+                        path: /
+                        port: metrics
+                      initialDelaySeconds: 10
+                    resources:
+                      limits:
+                        cpu: 250m
+                        memory: 192Mi
+                      requests:
+                        cpu: 100m
+                        memory: 128Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                        - all
+                      readOnlyRootFilesystem: true
+                      runAsGroup: 10000
+                      runAsNonRoot: true
+                      runAsUser: 10000
+                    volumeMounts:
+                      []
+                  affinity:
+                    {}
+                  imagePullSecrets:
+                    []
+                  nodeSelector:
+                    {}
+                  terminationGracePeriodSeconds: 30
+                  tolerations:
+                    []
+                  volumes:
+                    []
+  
+  # Trigger to fix crashloopbackoff in mongo exporter
+  - name: sock-shop-fix-trigger
+    namespace: sock-shop
+    chart: ../charts/kubectl-trigger
+    atomic: true
+    values:
+      - schedule: "26,56 * * * *"
+        script: "kubectl apply -f /manifests"
+        manifests:
+          order-mongo-exporter-crash.yaml: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: orders-mongodb-exporter
+              labels:
+                app.kubernetes.io/name: prometheus-mongodb-exporter
+                app.kubernetes.io/instance: orders-mongoexp
+                app.kubernetes.io/managed-by: Helm
+                helm.sh/chart: prometheus-mongodb-exporter-2.9.0
+              annotations:
+                {}
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: prometheus-mongodb-exporter
+                  app.kubernetes.io/instance: orders-mongoexp
+              template:
+                metadata:
+                  annotations:
+                    checksum/config: 4a39418397fc1bdefd74d92d7957052a315731133e33bad2c03f467e71020f3a
+                    promcat.sysdig.com/integration_type: mongodb
+                    promcat.sysdig.com/port: "9216"
+                    promcat.sysdig.com/target_ns: sock-shop
+                    promcat.sysdig.com/target_workload_name: sock-shop-orders-db
+                    promcat.sysdig.com/target_workload_type: deployment
+                  labels:
+                    app.kubernetes.io/name: prometheus-mongodb-exporter
+                    app.kubernetes.io/instance: orders-mongoexp
+                spec:
+                  serviceAccountName: orders-mongodb-exporter
+                  containers:
+                  - name: mongodb-exporter
+                    env:
+                      - name: MONGODB_URI
+                        valueFrom:
+                          secretKeyRef:
+                            name: orders-mongodb-exporter
+                            key: mongodb-uri
+                    image: "ssheehy/mongodb-exporter:0.10.0"
+                    imagePullPolicy: IfNotPresent
+                    args:
+                    - --web.listen-address=:9216
+                    - --collect.collection
+                    - --collect.database
+                    - --collect.indexusage
+                    - --collect.topmetrics
+                    - --collect.connpoolstats
+                    ports:
+                    - name: metrics
+                      containerPort: 9216
+                      protocol: TCP
+                    livenessProbe:
+                      httpGet:
+                        path: /
+                        port: metrics
+                      initialDelaySeconds: 10
+                    readinessProbe:
+                      httpGet:
+                        path: /
+                        port: metrics
+                      initialDelaySeconds: 10
+                    resources:
+                      limits:
+                        cpu: 250m
+                        memory: 192Mi
+                      requests:
+                        cpu: 100m
+                        memory: 128Mi
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                        - all
+                      readOnlyRootFilesystem: true
+                      runAsGroup: 10000
+                      runAsNonRoot: true
+                      runAsUser: 10000
+                    volumeMounts:
+                      []
+                  affinity:
+                    {}
+                  imagePullSecrets:
+                    []
+                  nodeSelector:
+                    {}
+                  terminationGracePeriodSeconds: 30
+                  tolerations:
+                    []
+                  volumes:
+                    []

@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+        {{- include "grafana-sysdig.labels" . | nindent 4 }}
+  name: {{ include "grafana-sysdig.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        {{- include "grafana-sysdig.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+          {{- include "grafana-sysdig.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: download-sysdig-plugin
+          image: {{ include "grafana-sysdig.busybox" . }}
+          securityContext:
+            runAsUser: 0
+          command: ["sh", "-c", "mkdir -p /var/lib/grafana/plugins && wget https://download.sysdig.com/stable/grafana-sysdig-datasource/grafana-sysdig-datasource-v0.7.tgz -O sysdig.tgz && tar zxf sysdig.tgz -C /var/lib/grafana/plugins && true"]
+          volumeMounts:
+          - mountPath: "/var/lib/grafana"
+            name: storage
+        - name: init-chown-data
+          image: {{ include "grafana-sysdig.busybox" . }}
+          securityContext:
+            runAsUser: 0
+          command: ["chown", "-R", "{{ .Values.securityContext.runAsUser }}:{{ .Values.securityContext.runAsUser }}", "/var/lib/grafana"]
+          volumeMounts:
+            - mountPath: "/var/lib/grafana"
+              name: storage
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
+      containers:
+      - env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: {{ .Values.security.admin.password }}
+        image:  {{ include "grafana-sysdig.image" . }}
+        name: {{ include "grafana-sysdig.fullname" . }}
+        volumeMounts:
+          - mountPath: "/var/lib/grafana"
+            name: storage
+      volumes:
+        - name: storage
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "grafana-sysdig.fullname" .) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+

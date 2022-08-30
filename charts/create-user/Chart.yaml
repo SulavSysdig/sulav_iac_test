@@ -1,0 +1,10 @@
+apiVersion: v2
+name: create-user
+description: Creates a secret with a kubeconfig for a user with signed certificate
+type: application
+version: 0.1.2
+home: https://github.com/sysdiglabs/demoenv-scenarios
+appVersion: 1.0.5
+icon: https://sysdig.com/wp-content/uploads/2019/10/sysdig-logo.svg
+maintainers:
+  - name: Sysdig

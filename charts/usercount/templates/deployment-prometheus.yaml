@@ -1,0 +1,40 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "usercount.fullname" . }}-prometheus
+  labels:
+        {{- include "usercount.prometheus.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+        {{- include "usercount.prometheus.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+          {{- include "usercount.prometheus.selectorLabels"  . | nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchExpressions:
+                  - key: "app.kubernetes.io/name"
+                    operator: In
+                    values:
+                      - {{ include "usercount.name" . }}-usercount
+      containers:
+      - name: prometheus
+        image: {{ include "usercount.prometheus.image" . }}
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+        ports:
+        - containerPort: 9090
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ include "usercount.fullname" . }}

@@ -1,0 +1,18 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: "{{.Release.Namespace}}"
+  name: "{{.Release.Name}}-csr-approver"
+  labels:
+    app.kubernetes.io/managed-by: {{.Release.Service | quote }}
+    app.kubernetes.io/instance: {{.Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{.Chart.Name}}-{{.Chart.Version}}"
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: "{{.Release.Namespace}}"
+roleRef:
+  kind: ClusterRole
+  name: "{{.Release.Name}}-csr-approver"
+  apiGroup: rbac.authorization.k8s.io

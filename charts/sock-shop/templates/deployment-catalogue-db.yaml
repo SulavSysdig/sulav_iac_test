@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sock-shop.fullname" . }}-catalogue-db
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.catalogue-db.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sock-shop.catalogue-db.labels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        {{- include "sock-shop.common.labels" . | nindent 8 }}
+        {{- include "sock-shop.catalogue-db.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ template "sock-shop.serviceAccountName" .}}
+      containers:
+      - name: catalogue-db
+        image: {{ include "sock-shop.catalogue-db.image" . }}
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: fake_password
+          - name: MYSQL_DATABASE
+            value: socksdb
+        ports:
+        - name: mysql
+          containerPort: 3306
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: data
+        resources:
+{{ toYaml .Values.cataloguedb.resources | indent 10 }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      nodeSelector:
+        beta.kubernetes.io/os: linux

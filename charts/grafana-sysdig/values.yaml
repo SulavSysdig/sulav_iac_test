@@ -1,0 +1,30 @@
+image:
+  repository: grafana/grafana
+  tag: latest
+
+busybox:
+  image:
+    repository: busybox
+    tag: 1.31.1
+
+security:
+  admin:
+    password: changeme
+
+ingress:
+  enabled: true
+  host: grafana.sysdig-demo.zone
+
+persistence:
+  enabled: true
+  finalizers:
+  - kubernetes.io/pvc-protection
+  accessModes:
+  - ReadWriteOnce
+  size: 10Gi
+  # storageClassName: default
+  # existingClaim:
+
+securityContext:
+  runAsUser: 472
+  fsGroup: 472

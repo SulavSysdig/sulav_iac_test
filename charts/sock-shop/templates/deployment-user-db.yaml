@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sock-shop.fullname" . }}-user-db
+  labels:
+    {{- include "sock-shop.common.labels" . | nindent 4 }}
+    {{- include "sock-shop.user-db.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sock-shop.user-db.labels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        {{- include "sock-shop.common.labels" . | nindent 8 }}
+        {{- include "sock-shop.user-db.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ template "sock-shop.serviceAccountName" .}}
+      containers:
+      - name: users-db
+        image: {{ include "sock-shop.user-db.image" . }}
+        ports:
+        - name: mongo
+          containerPort: 27017
+        resources:
+{{ toYaml .Values.userdb.resources | indent 10 }}
+        securityContext:
+          capabilities:
+            drop:
+              - all
+            add:
+              - CHOWN
+              - SETGID
+              - SETUID
+          readOnlyRootFilesystem: false
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+      nodeSelector:
+        beta.kubernetes.io/os: linux

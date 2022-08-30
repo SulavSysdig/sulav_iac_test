@@ -1,0 +1,28 @@
+sysdig:
+  settings:
+    feature:
+      mode: troubleshooting
+    snaplen: 512
+    autodrop:
+      enabled: true
+      upper_threshold: 80
+    #Enable k8s extra features
+    k8s_extra_resources:
+      include:
+        - persistentvolumes
+        - persistentvolumeclaims
+        - storageclasses
+        - horizontalpodautoscalers
+        - resourcequotas
+    #Enable prometheus metrics
+    metrics_excess_log: true
+    use_promscrape: true
+    prometheus:
+      enabled: true
+      ingest_raw: true
+      ingest_calculated: false
+      max_metrics: 10000
+      max_metrics_per_process: 20000
+      prom_service_discovery: true
+    promscrape_fastproto: true
+    tags: role:cluster
