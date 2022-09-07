@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1662568469_remediate_SecurityContext_runAsUser_for_workload_redis.yaml
+  target:
+    kind: Deployment
+    name: redis
+    namespace: vote
