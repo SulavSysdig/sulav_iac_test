@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1663163695_remediate_SecurityContext_allowPrivilegeEscalation_for_workload_observer.yaml
+  target:
+    kind: Deployment
+    name: observer
+    namespace: vote
