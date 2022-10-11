@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1665530934_remediate_SecurityContext_runAsUser_for_workload_example-java-app-cassandra.yaml
+  target:
+    kind: Deployment
+    name: '*-cassandra'
+    namespace: example-java-app
