@@ -1,0 +1,10 @@
+kind: .
+metadata:
+  name: .
+spec:
+  template:
+    spec:
+      containers:
+      - name: cassandra
+        securityContext:
+          runAsUser: 1000
