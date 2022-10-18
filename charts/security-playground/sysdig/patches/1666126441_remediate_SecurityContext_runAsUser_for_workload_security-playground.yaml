@@ -1,0 +1,10 @@
+kind: .
+metadata:
+  name: .
+spec:
+  template:
+    spec:
+      containers:
+      - name: security-playground
+        securityContext:
+          runAsUser: 1234
