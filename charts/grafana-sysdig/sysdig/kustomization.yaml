@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1666874715_remediate_HostNetwork_for_workload_sysdig-agent.yaml
+  target:
+    kind: DaemonSet
+    name: '*'
+    namespace: sysdig-agent
