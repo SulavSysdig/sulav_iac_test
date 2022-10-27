@@ -1,0 +1,7 @@
+kind: .
+metadata:
+  name: .
+spec:
+  template:
+    spec:
+      hostNetwork: false
