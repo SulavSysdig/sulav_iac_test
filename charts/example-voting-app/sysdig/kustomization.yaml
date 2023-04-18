@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1681807567_remediate_SecurityContext_runAsUser_for_workload_voter.yaml
+  target:
+    kind: Deployment
+    name: voter
+    namespace: istio-flasknginx
