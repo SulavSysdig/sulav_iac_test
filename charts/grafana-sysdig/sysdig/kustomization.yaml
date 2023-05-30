@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1685446292_remediate_SecurityContext_readOnlyRootFilesystem_for_workload_konnectivity-agent.yaml
+  target:
+    kind: Deployment
+    name: konnectivity-agent
+    namespace: kube-system
