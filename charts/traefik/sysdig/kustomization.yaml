@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1686233064_remediate_SecurityContext_runAsUser_for_workload_traefik.yaml
+  target:
+    kind: StatefulSet
+    name: traefik
+    namespace: traefik
