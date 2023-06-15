@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1686843166_remediate_SecurityContext_runAsUser_for_workload_example-java-app-javaapp.yaml
+  target:
+    kind: Deployment
+    name: '*-javaapp'
+    namespace: example-java-app-log4j
