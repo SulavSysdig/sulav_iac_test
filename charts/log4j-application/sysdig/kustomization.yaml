@@ -1,0 +1,7 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1687877918_remediate_SecurityContext_readOnlyRootFilesystem_for_workload_release-name-log4j-application.yaml
+  target:
+    kind: Deployment
+    name: '*-log4j-application'
