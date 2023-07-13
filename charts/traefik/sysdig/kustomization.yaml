@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1689267699_remediate_SecurityContext_runAsUser_for_workload_calico-node.yaml
+  target:
+    kind: DaemonSet
+    name: calico-node_test
+    namespace: kube-system
