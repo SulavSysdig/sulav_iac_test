@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1693436853_remediate_SecurityContext_runAsUser_for_workload_nginx-crashloop-nginx.yaml
+  target:
+    kind: Deployment
+    name: '*-nginx'
+    namespace: nginx-crashloop
