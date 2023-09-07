@@ -1,0 +1,8 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1694103963_remediate_SecurityContext_allowPrivilegeEscalation_for_workload_calico-node.yaml
+  target:
+    kind: DaemonSet
+    name: calico-node
+    namespace: kube-system
