@@ -1,0 +1,7 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1704867406_remediate_SecurityContext_readOnlyRootFilesystem_for_workload_voter.yaml
+  target:
+    kind: Deployment
+    namespace: istio-flasknginx
