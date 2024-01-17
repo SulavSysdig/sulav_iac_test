@@ -1,0 +1,7 @@
+resources:
+- all.yaml
+patches:
+- path: ./patches/1705457340_remediate_SecurityContext_allowPrivilegeEscalation_for_workload_sock-shop-orders.yaml
+  target:
+    kind: Deployment
+    namespace: sock-shop
